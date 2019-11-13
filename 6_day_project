@@ -1,1 +1,198 @@
+import java.awt.Color;
+import java.awt.Graphics;
+import java.awt.event.MouseEvent;
+import java.awt.event.MouseListener;
+
+import javax.swing.JComponent;
+import javax.swing.JFrame;
+
+public class AtaxxGame extends JComponent implements MouseListener{
+
+	public static void main(String[] args) {
+		JFrame frame = new JFrame("Ataxx v2.0");
+		frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+		frame.setVisible(true);
+		frame.setSize(750,550);
+		frame.add(new AtaxxGame());
+
+	}
+
+	//variables
+
+	private int[][] board;
+	private int turn;
+	private int player1, player2;
+
+	public AtaxxGame() {
+		addMouseListener(this);
+		reset();
+	}
+
+	public void paintComponent(Graphics g) {
+		for(int i=0; i<10; i++) {
+			g.drawLine(i*50, 0, i*50, 500);
+			g.drawLine(0, i*50, 500, i*50);
+		}
+
+		g.drawString("Player 1: " + player1, 525, 50);
+		g.drawString("Player 2: " + player2, 525, 75);
+
+		if(player1 + player2 == 100) {
+			if(player1 > player2) {
+				g.drawString("Player 1 Wins!", 525, 100);
+			} else if (player2 > player1) {
+				g.drawString("Player 2 Wins!", 525, 100);
+			} else {
+				g.drawString("Tied Game!", 525, 100);
+			}
+
+			g.drawString("Reset?", 525, 150);
+			g.drawString("Yes", 525, 175);
+			g.drawString("No", 525, 200);
+		}
+
+		for(int i=0; i<10; i++) {
+			for(int j=0; j<10; j++) {
+				if(board[i][j] == 1) {
+					g.setColor(Color.RED);
+					g.fillOval(i*50+2, j*50+2, 45, 45);
+				} else if (board[i][j] == 2) {
+					g.setColor(Color.GREEN);
+					g.fillOval(i*50+2, j*50+2, 45, 45);
+				}
+			}
+		}
+	}
+	//changed line 3 and 4
+	public boolean isValid(int x, int y) {
+		int player = turn%2+1;
+		if(board[x][y] == 0) {
+			if(y-1 >= 0 && board[x][y-1] == player) return true;
+			if(y-2 >= 0 && board[x][y-2] == player) return true;
+			if(x-1 >= 0 && board[x-1][y] == player) return true;
+			if(x-2 >= 0 && board[x-2][y] == player) return true;
+			if(y+1 < 10 && board[x][y+1] == player) return true;
+			if(y+2 < 10 && board[x][y+2] == player) return true;
+			if(x+1 < 10 && board[x+1][y] == player) return true;
+			if(x+2 < 10 && board[x+2][y] == player) return true;
+		}
+		return false;
+	}
+
+	public void calcScore() {
+		player1 = 0;
+		player2 = 0;
+		//changed "i<10" ... originally "i<9"
+		for(int i=0; i<9; i++) {
+			for(int j=0; j<10; j++) {
+				if(board[i][j] == 1) {
+					player1++;
+				}
+				if(board[i][j] == 2) {
+					player2++;
+				}
+			}
+		}
+		System.out.println(player1 + " " + player2);
+	}
+
+	public void reset() {
+		board = new int[10][10];
+		turn = 0;
+		board[0][0] = 1;
+		board[9][9] = 1;
+		board[0][9] = 2;
+		board[9][0] = 2;
+		player1 = 2;
+		player2 = 2;
+	}
+
+	public boolean canMove() {
+		for(int i=0; i<10; i++) {
+			for(int j=0; j<10; j++) {
+				if(isValid(i,j)) {
+					return true;
+				}
+			}
+		}
+		return false;
+	}
+
+	@Override
+	public void mouseClicked(MouseEvent e) {
+		// TODO Auto-generated method stub
+
+	}
+
+	@Override
+	public void mouseEntered(MouseEvent e) {
+		// TODO Auto-generated method stub
+
+	}
+
+	@Override
+	public void mouseExited(MouseEvent e) {
+		// TODO Auto-generated method stub
+
+	}
+
+	@Override
+	public void mousePressed(MouseEvent e) {
+		// TODO Auto-generated method stub
+		if(player1+player2 == 100) {
+			if(e.getX() > 525 && e.getY() > 150 && e.getY() < 175) {
+				//change
+				//if(e.getX() > 525 && e.getY() > 175 && e.getY() < 200) {
+				//System.exit(0);
+			}
+			reset();
+		}
+		if(e.getX() > 525 && e.getY() > 175 && e.getY() < 200) {
+			System.exit(0);
+		}
+		int x = e.getX() / 50;
+		int y = e.getY() / 50;
+		if(x>=0 && x<10 && y>=0 && y<10) {
+			if(board[x][y] == 0 && isValid(x, y)) {
+				board[x][y] = turn%2 + 1;
+
+
+				//flip everything else
+
+				for (int i=x-1; i<=x+1; i++) {
+					for(int j=y-1; j<=y+1; j++) {
+						if(i<0 || i >=10 || j<0 || j>= 10) {
+							continue;
+						}
+						if(board[i][j] != 0) {
+							board[i][j] = turn%2 + 1;
+						}
+					}
+				}
+				turn++;
+				if(!canMove()){
+					//changed
+					//for(int i=x-1; i<=x+1; i++) {
+					//for(int j=y-1; j<=y+1; j++) {
+					for(int i=0; i<10; i++) {
+						for(int j=0; j<10; j++) {
+							board[i][j] = (turn+1)%2 + 1;
+						}
+					}
+				}
+			}
+		}
+		calcScore();
+		repaint();
+	}
+
+
+
+	@Override
+	public void mouseReleased(MouseEvent e) {
+		// TODO Auto-generated method stub
+
+	}
+
+}
 
